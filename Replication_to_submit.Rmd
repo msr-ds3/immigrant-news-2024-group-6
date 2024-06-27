@@ -12,7 +12,7 @@ library(tidyverse)
 ```
 
 ```{r}
-setwd("C:/Users/suvedei/Desktop/Immigration paper Replica")
+#setwd("C:/Users/suvedei/Documents/group/immigrant-news-2024-group-6")
 df <- read.csv("google_trend_search.csv", header = FALSE, col.names = c("ym", "report", "crime", "welfare"))
 #colnames(df) <- c("search")
 df <- df[-c(1, 2), ] %>%  mutate(ym = ym(ym), report = as.numeric(report), crime = as.numeric(crime), welfare = as.numeric(welfare)) %>% filter(ym < ym("2020-01"))
@@ -24,7 +24,7 @@ df<- df %>% mutate( president = case_when(
 
 
 Day1 : Monday plotting data
-#comment: # I do not quite understand the reason of dropping zero values
+#comment: # I do not quite understand the reason of dropping zero values "guess: maybe 0 = Na"
 ```{r}
 #plotting trend
 df  %>%  
@@ -123,6 +123,125 @@ document_topics %>%
   ylab("Immigr + Crime \n News Coverage") +
   xlab("")
 ```
+#Day 3 replicating Table 4
+
+collecting features
+```{r}
+immig_segment <- tot %>% 
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( segment = sum(duration))
+
+immig_crime <- document_topics %>% 
+  select(Topic1, Topic3, date) %>%  
+  mutate(Topic  = Topic1 +  Topic3)%>% 
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( crime = sum(Topic))
+
+immig_welfare <- document_topics %>% 
+  select(Topic13, channel, date, duration, post_election, post_trump, time) %>%
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( welfare = sum(Topic13))
+
+immig_comb <- left_join(immig_crime, immig_segment) %>%
+  left_join(immig_welfare) %>% 
+  mutate( Trump_admin = case_when(
+    ymd("2017-01-01") < ymd ~ TRUE,
+    .default = FALSE
+  ), weekday = weekdays.Date(ymd), month = months.Date(ymd))
+  
+```
+#importing Report data that used for Paper
+```{r}
+setwd("C:/Users/suvedei/Documents/coursework/week4/project/from_replication_files")
+
+daily_report <- read.csv(("gt_report_daily.csv")) %>% 
+  mutate(ymd = ymd(date)) %>% 
+  select(ymd, search, search_adj)
+
+table_4 <- inner_join(daily_report, immig_comb)
+
+```
+
+```{r}
+regression <- lm(search ~ ymd + crime + segment + welfare + Trump_admin + weekday + month, table_4)
+summary(regression)
+```
+# replicating the figures using data that is used for the paper
+```{r}
+setwd("C:/Users/suvedei/Documents/coursework/week4/project/from_replication_files")
+
+df_crime <- read.csv("google_trends_crime.csv", col.names = c("year", "month", "crime")) %>%
+  unite(date,c(year, month), sep = "-")
+df_report <- read.csv("google_trends_report.csv" , col.names = c("year", "month", "report")) %>%
+unite(date,c(year, month), sep = "-")
+df_welfare <- read.csv("google_trends_welfare.csv", col.names = c("year", "month", "welfare")) %>%
+                         unite(date,c(year, month), sep = "-")
+
+df_original <- left_join(df_crime,df_report, by = join_by(date)) %>% 
+  left_join(df_welfare, by = join_by(date)) %>% 
+  mutate(date = ym(date))
+
+df_original <- df_original %>% mutate( president = case_when(
+  date < ym("2009-01") ~ "Bush" ,
+  date < ym("2017-01") ~ "Obama" ,
+  .default = "Trump"))
+
+```
+
+
+#plotting Figure 1
+```{r}
+#plotting trend
+df_original  %>%  
+  ggplot(aes(x = date, y = report, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Report")  + 
+  xlab("")
+
+
+#plotting welfare
+df_original  %>% 
+  ggplot(aes(x = date, y = welfare, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Welfare") + xlab("") + scale_y_continuous(limits = c(0, 100))
+
+#plotting crime
+df_original  %>% 
+  ggplot(aes(x = date, y = crime, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Crime") + xlab("") +
+  labs(title = "2nd Graph") +
+  scale_y_continuous(limits = c(0, 100))
+
+
+```
+
+
+#day 2 replicating Table 3
+Crime regression
+```{r}
+
+#Crime
+df_original$president <- relevel(factor(df_original$president), ref = "Obama")
+ 
+crime_regression <- lm(crime ~ date + president , data = df_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Crime_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(crime_regression)
+
+ 
+report_regression <- lm(report ~ date + president , data = df_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Report_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(report_regression)
+ 
+welfare_regression <- lm(welfare ~ date + president, data = df_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Welfare_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(welfare_regression)
+```
+#Comment: exactly matches with Table3
+
 
 
 
