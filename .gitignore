@@ -1,0 +1,10 @@
+*.RData
+*.Rdata
+*.rdata
+.Rproj.user
+.Rhistory
+*.gz
+*.dat
+.DS_Store
+.RDataTmp
+*.RDataTmp
