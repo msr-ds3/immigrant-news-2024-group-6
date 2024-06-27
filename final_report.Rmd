@@ -1,0 +1,280 @@
+---
+title: "Replication of \"Anti-Immigrant Rhetoric and ICE Reporting Interest: Evidence from a Large-Scale Study of Web Search Data\""
+date: '`r Sys.time()`'
+output:
+  html_document:
+    #code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+---
+
+
+```{r setup, include=FALSE}
+library(dbplyr)
+library(lubridate)
+library(tidyverse)
+
+# set plot theme
+theme_set(theme_bw())
+```
+
+
+```{r Load in csv data}
+# Dataset downloaded from Google Trends 2024
+google_trends_2024 <- read.csv("data/from_google_trends_2024/google_trend_search.csv", header = FALSE, col.names = c("ym", "report", "crime", "welfare"))
+
+google_trends_2024 <- google_trends_2024[-c(1, 2), ] %>%  mutate(ym = ym(ym), report = as.numeric(report), crime = as.numeric(crime), welfare = as.numeric(welfare)) %>% filter(ym < ym("2020-01"))
+
+google_trends_2024 <- google_trends_2024 %>% mutate( president = case_when(
+  ym < ym("2009-01") ~ "Bush" ,
+  ym < ym("2017-01") ~ "Obama" ,
+  .default = "Trump"))
+
+
+# Original dataset used in the paper
+original_crime <- read.csv("data/from_replication_files/google_trends_crime.csv", col.names = c("year", "month", "crime")) %>%
+  unite(date,c(year, month), sep = "-")
+original_report <- read.csv("data/from_replication_files/google_trends_report.csv" , col.names = c("year", "month", "report")) %>%
+unite(date,c(year, month), sep = "-")
+original_welfare <- read.csv("data/from_replication_files/google_trends_welfare.csv", col.names = c("year", "month", "welfare")) %>%
+                         unite(date,c(year, month), sep = "-")
+
+trends_original <- left_join(original_crime, original_report, by = join_by(date)) %>%
+  left_join(original_welfare, by = join_by(date)) %>% 
+  mutate(date = ym(date))
+
+trends_original <- trends_original %>% mutate( president = case_when(
+  date < ym("2009-01") ~ "Bush" ,
+  date < ym("2017-01") ~ "Obama" ,
+  .default = "Trump"))
+
+
+# Import the topic model
+library(stm)
+load("data/TopicModel.RData")
+document_topics <- make.dt(immigrFit, meta = out$meta)
+topic_terms <- t(exp(immigrFit$beta$logbeta[[1]]))
+rownames(topic_terms) <- out$vocab
+colnames(topic_terms) <- sprintf("Topic%d", 1:ncol(topic_terms))
+
+
+# Import Daily Google Trends dataset
+daily_report <- read.csv(("data/from_replication_files/gt_report_daily.csv")) %>% 
+  mutate(ymd = ymd(date)) %>% 
+  select(ymd, search, search_adj)
+```
+
+Replication Figure 4 from the Research Paper using 2024 Google Trends Data
+```{r Replicating Figure 4}
+#plotting reporting
+google_trends_2024  %>%  
+  ggplot(aes(x = ym, y = report, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends")  + 
+  xlab("") +
+  ggtitle("Reporting Trends")
+
+#plotting crime
+google_trends_2024  %>% 
+  ggplot(aes(x = ym, y = crime, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends") + xlab("") +
+  scale_y_continuous(limits = c(0, 100)) +
+  ggtitle("Crime Trends")
+
+#plotting welfare
+google_trends_2024  %>% 
+  ggplot(aes(x = ym, y = welfare, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends") + xlab("") + scale_y_continuous(limits = c(0, 100)) +
+  ggtitle("Welfare Trends")
+
+```
+
+
+Replication Figure 4 from the Research Paper using the Original Dataset
+```{r}
+#plotting reporting
+trends_original  %>%  
+  ggplot(aes(x = date, y = report, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends")  + 
+  xlab("") +
+  ggtitle("Reporting Trends")
+
+#plotting crime
+trends_original  %>% 
+  ggplot(aes(x = date, y = crime, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends") + xlab("") +
+  scale_y_continuous(limits = c(0, 100)) +
+  ggtitle("Crime Trends")
+
+#plotting welfare
+trends_original  %>% 
+  ggplot(aes(x = date, y = welfare, color =  president), group_by = president) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  ylab("Google Trends") + xlab("") + scale_y_continuous(limits = c(0, 100)) +
+  ggtitle("Welfare Trends")
+
+```
+
+Report: When replicating Figure 4 using the orignal dataset, we got near identical results. However, when replicating with the 2024 Google Trends data, we noticed a lot of zero values that weren't present in the original dataset for the paper. This resulted in slightly skewed regression lines for the Bush administration. We suspect that maybe Google Trends dropped the data for those specific days.
+
+
+
+Replication Table 3 from the Research Paper using 2024 Google Trends Data
+```{r Replicate Table 3 using 2024 Google Trends data}
+
+#Crime
+google_trends_2024$president <- relevel(factor(google_trends_2024$president), ref = "Obama")
+ 
+crime_regression <- lm(crime ~ ym + president , data = google_trends_2024)
+
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Crime_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(crime_regression)
+
+ 
+report_regression <- lm(report ~ ym + president , data = google_trends_2024)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Report_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(report_regression)
+ 
+welfare_regression <- lm(welfare ~ ym + president, data = google_trends_2024)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Welfare_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(welfare_regression)
+```
+
+
+Replication Table 3 from the Research Paper using the Original Dataset
+```{r Replicate Table 3 using Original data}
+
+#Crime
+trends_original$president <- relevel(factor(trends_original$president), ref = "Obama")
+ 
+crime_regression <- lm(crime ~ date + president , data = trends_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Crime_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(crime_regression)
+
+ 
+report_regression <- lm(report ~ date + president , data = trends_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Report_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(report_regression)
+ 
+welfare_regression <- lm(welfare ~ date + president, data = trends_original)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Welfare_Regression~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(welfare_regression)
+```
+
+Report: When we replicated Table 3 using the original data set, we got near identical results. However, when we tried to replicate Table 3 using the 2024 Google Trends data, only the "report trends" table had close results to the paper. The other two (welfare and crime) had drastically different coefficients, although the p-values are similar. This is most likely due to the effects of the extra zero values.
+
+
+
+Replication of Figure 2 using the Original Topic Model
+```{r Replicate Figure 2 using Original Topic Model}
+tot %>% 
+  mutate( ym = ym(format(ymd(date), "%Y-%m"))) %>%
+  group_by(channel, ym, post_election, post_trump, time ) %>% 
+  summarize( total_duration = sum(duration)) %>%
+  ggplot(aes(x = ym, y = total_duration, color = channel, group = interaction(channel, time))) +
+  geom_point() + 
+  geom_smooth( se = F) + 
+  geom_vline(xintercept = c(ym("2015-06"), ym("2017-01")), linetype = "dashed") +
+  ggtitle("Figure 2") +
+  ylab("Num Monthly Immigration Segs") +
+  xlab("")
+```
+
+Replication of Figure 3 using the Original Topic Model
+```{r Replicate Figure 3 using the Original Topic Model}
+document_topics %>% 
+  select(Topic1, Topic3, channel, date, duration, post_election, post_trump, time) %>%  
+  mutate(Topic  = Topic1 +  Topic3)%>% 
+  mutate( ym = ym(format(ymd(date), "%Y-%m"))) %>%
+  group_by(channel, ym, post_election, post_trump, time ) %>% 
+  summarize( total_duration = sum(Topic)) %>%
+  ggplot(aes(x = ym, y = total_duration, color = channel, group = interaction(channel, time))) +
+  geom_point() + 
+  geom_smooth( se = F) + 
+  geom_vline(xintercept = c(ym("2015-06"), ym("2017-01")), linetype = "dashed") +
+  ylab("Immigr + Crime \n News Coverage") +
+  xlab("") +
+  ggtitle("Figure 3")
+
+
+document_topics %>% 
+  select(Topic13, channel, date, duration, post_election, post_trump, time) %>%
+  mutate( ym = ym(format(ymd(date), "%Y-%m"))) %>%
+  group_by(channel, ym, post_election, post_trump, time ) %>% 
+  summarize( total_duration = sum(Topic13)) %>%
+  ggplot(aes(x = ym, y = total_duration, color = channel, group = interaction(channel, time))) +
+  geom_point() + 
+  geom_smooth( se = F) + 
+  geom_vline(xintercept = c(ym("2015-06"), ym("2017-01")), linetype = "dashed")+
+  ylab("Immigr + Welfare \n News Coverage") +
+  xlab("") +
+  ggtitle("Figure 3")
+```
+
+Report: Using the topic model data used by the research paper, we were able to make near identical graphs. 
+
+
+Replication of Table 4 using Daily Topic Model and Google Trends data
+```{r Replicate Table 4 using both daily topic model and google trends data}
+immig_segment <- tot %>% 
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( segment = sum(duration))
+
+immig_crime <- document_topics %>% 
+  select(Topic1, Topic3, date) %>%  
+  mutate(Topic  = Topic1 +  Topic3)%>% 
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( crime = sum(Topic))
+
+immig_welfare <- document_topics %>% 
+  select(Topic13, channel, date, duration, post_election, post_trump, time) %>%
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( welfare = sum(Topic13))
+
+immig_comb <- left_join(immig_crime, immig_segment) %>%
+  left_join(immig_welfare) %>% 
+  mutate( Trump_admin = case_when(
+    ymd("2017-01-01") < ymd ~ TRUE,
+    .default = FALSE
+  ), weekday = weekdays.Date(ymd), month = months.Date(ymd))
+  
+```
+
+```{r Create regression table}
+
+# Merge all data frames together
+table_4 <- inner_join(daily_report, immig_comb)
+
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Search Data~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+regression <- lm(search ~ ymd + crime + segment + welfare + Trump_admin + weekday + month, table_4)
+summary(regression)
+
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Search Adjusted Data~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+regression_adj <- lm(search_adj ~ ymd + crime + segment + welfare + Trump_admin + weekday + month, table_4)
+summary(regression_adj)
+```
+
+Report: We replicated a regression analysis on both for predicting the standard Google Trends "Reporting" data and the adjusted Google Trends "Reporting" data (adj = monthly search / mean weekly search). We found that by using the adjusted data, we got similar outcomes, particularly for the "Trump_admin" feature (18.634301), but the intercept seems to be different. When running on the standard data, the intercept is closer to the reported table, but the "Trump_admin" feature is drastically lower (6.251847). However, the p-values replicated are similar, so there does seem to be a correlation between the Trump administration and the search data.
+
+
+Extension: 
+Question 1: 
+What if we got data on the number of immigration-policies passed.
+This would be a better metric for "government support for deportation" than Trump's inauguration. We classify the policies based on immigration (positive/negative).
+How about in addition to identifying good and bad immigration policies, we get the exact day they were passed. We can do something similar to the "pre-Trump" vs "post-Trump" distinction the paper did. I think this would better represent "government stance" in relation to reporting immigrants.
+In addition to policies that were passed, we can look at attempts to pass immigration related policies. It would be interesting to see how news reporting reacts and how search results are influenced (reporting/welfare/crime).
+June 2018 --> migrant family separation (courtesy of Matt and Fabio). Government passe policy to support immigration. See how that effected reporting data/ support data.
+
+Question 2:
+It is possible that prior to Trump's inauguration, people were already thinking about the anti-immigration policies (since Trump was very vocal in his campaign). Once Trump became president, maybe people were biased / primed into searching about anti-immigration sentiments (even if they weren't aiming to actually report it - did it out of curiosity). 
+What happens if we adjusted for this bias. We can either omit that data from the regression or find a better metric to represent "intentional reporting data." This may change the regression line and get rid of that spike.
+
+
