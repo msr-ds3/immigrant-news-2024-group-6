@@ -55,12 +55,7 @@ trends_original <- trends_original %>% mutate( president = case_when(
 
 # Import the topic model
 library(stm)
-load("data/TopicModel.RData")
-document_topics <- make.dt(immigrFit, meta = out$meta)
-topic_terms <- t(exp(immigrFit$beta$logbeta[[1]]))
-rownames(topic_terms) <- out$vocab
-colnames(topic_terms) <- sprintf("Topic%d", 1:ncol(topic_terms))
-
+load("data/topic_model_lite.RData")
 
 # Import Daily Google Trends dataset
 daily_report <- read.csv(("data/from_replication_files/gt_report_daily.csv")) %>% 
@@ -177,7 +172,7 @@ summary(welfare_regression)
 
 # Replication of Figure 2 using the Original Topic Model
 ```{r Replicate Figure 2 using Original Topic Model, message=FALSE}
-tot %>% 
+document_topics %>% 
   mutate( ym = ym(format(ymd(date), "%Y-%m"))) %>%
   group_by(channel, ym, post_election, post_trump, time ) %>% 
   summarize( total_duration = sum(duration)) %>%
@@ -227,7 +222,7 @@ document_topics %>%
 
 # Replication of Table 4 using Daily Topic Model and Google Trends data
 ```{r Replicate Table 4 using both daily topic model and google trends data, message=FALSE, warning=FALSE}
-immig_segment <- tot %>% 
+immig_segment <- document_topics %>% 
   mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
   group_by(ymd) %>% 
   summarize( segment = sum(duration))
@@ -298,7 +293,7 @@ Table 5 supported H1 by stating that
 # Replication of Table 5 using Original Topic Model and Original Dataset
 ```{r Importing Trump segments and monthly adjustment, message=FALSE}
 #Importing Trump segments and monthly adjustment
-trump_segs <- tot %>% 
+trump_segs <- document_topics %>% 
   select(date, trump) %>%
   mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
   group_by(ymd) %>% 
