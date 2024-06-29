@@ -442,7 +442,7 @@ ICE Reporting Interest: Evidence from a Large-Scale Study of Web Search
 Data”</h1>
 <h4 class="author">Suvedei (Baruch College) and Eric (Hunter
 College)</h4>
-<h4 class="date">2024-06-28 14:31:43.94158</h4>
+<h4 class="date">2024-06-28 21:51:07.791608</h4>
 
 </div>
 
@@ -472,6 +472,9 @@ of Table 4 using Daily Topic Model and Google Trends data</a></li>
 <li><a href="#question-2" id="toc-question-2">Question 2:</a></li>
 <li><a href="#question-3" id="toc-question-3">Question 3:</a></li>
 </ul></li>
+<li><a href="#replication-of-table-5-using-original-topic-model-and-original-dataset" id="toc-replication-of-table-5-using-original-topic-model-and-original-dataset">Replication
+of Table 5 using Original Topic Model and Original Dataset</a></li>
+<li><a href="#report-4" id="toc-report-4">Report:</a></li>
 </ul>
 </div>
 
@@ -942,7 +945,138 @@ get rid of that spike.</p>
 </div>
 <div id="question-3" class="section level2">
 <h2>Question 3:</h2>
+<blockquote>
+<p>Investigating further for Hypothesis 1: “H1: People will have more
+interest in reporting immigrants when they believe the government
+supports deportation.” Table 5 supported H1 by stating that “Regarding
+Trump’s campaign cues, the regressions did not show a significant
+positive effect of Trump’s immigration coverage on anti-immigrant
+searches during the campaign. However, the cues about Trump’s
+presidential immigration policy positively and significantly affected
+reporting searches. Both of these findings provide further support for
+Hypothesis 1.”</p>
+</blockquote>
+<blockquote>
+<p>But we thought that not just because of government supports, there is
+an increase in interest in reporting immigrants, but also it is because
+there is more news activity during Trump presidential. Therefore we
+thought it is worth to explore further by adjusting report search by the
+total number of news streamed. (#time interval we chose “monthly
+adjustment”)</p>
+</blockquote>
 </div>
+</div>
+<div id="replication-of-table-5-using-original-topic-model-and-original-dataset" class="section level1">
+<h1>Replication of Table 5 using Original Topic Model and Original
+Dataset</h1>
+<pre class="r"><code>#Importing Trump segments and monthly adjustment
+trump_segs &lt;- tot %&gt;% 
+  select(date, trump) %&gt;%
+  mutate( ymd = ymd(format(ymd(date), &quot;%Y-%m-%d&quot;))) %&gt;%
+  group_by(ymd) %&gt;% 
+  summarize( trump = sum(trump), count = n()) %&gt;% mutate(ym = format(ymd, &quot;%Y-%m&quot;)) %&gt;% group_by(ym) %&gt;%  mutate( max = cumsum(count), max = max(max))
+table_5 &lt;- inner_join(table_4, trump_segs) %&gt;% mutate(news_adjust = search_adj / max)</code></pre>
+<pre><code>## [1] &quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Replicating Table 5~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = search_adj ~ segment + trump + Trump_admin + Trump_admin * 
+##     trump + crime + welfare + ymd + weekday + month, data = table_5)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -49.145 -11.762  -2.061   8.958 139.752 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)           91.1589940 24.8415719   3.670 0.000249 ***
+## segment                0.0008703  0.0322343   0.027 0.978464    
+## trump                 -0.0286160  0.0555614  -0.515 0.606586    
+## Trump_adminTRUE       15.9951820  1.8499130   8.646  &lt; 2e-16 ***
+## crime                  0.8680215  0.2674561   3.245 0.001192 ** 
+## welfare                2.0377031  0.6873778   2.964 0.003068 ** 
+## ymd                   -0.0033703  0.0014955  -2.254 0.024328 *  
+## weekdayMonday          0.5685412  1.5607109   0.364 0.715685    
+## weekdaySaturday       -3.9442080  1.5625360  -2.524 0.011672 *  
+## weekdaySunday         -5.4298246  1.5569653  -3.487 0.000498 ***
+## weekdayThursday        2.6147968  1.5561925   1.680 0.093064 .  
+## weekdayTuesday        -1.3198189  1.5547484  -0.849 0.396041    
+## weekdayWednesday       3.0429961  1.5535500   1.959 0.050282 .  
+## monthAugust            1.4808726  2.0179880   0.734 0.463134    
+## monthDecember          2.1738091  2.1136517   1.028 0.303857    
+## monthFebruary         11.2646430  2.0277062   5.555 3.14e-08 ***
+## monthJanuary          10.4765640  2.0037581   5.228 1.89e-07 ***
+## monthJuly              1.9820390  2.0088746   0.987 0.323937    
+## monthJune              3.9985417  2.0168298   1.983 0.047550 *  
+## monthMarch             3.2650958  2.0011768   1.632 0.102923    
+## monthMay               0.6076026  1.9984210   0.304 0.761128    
+## monthNovember          2.1050021  2.1148172   0.995 0.319682    
+## monthOctober          -1.1940135  2.0935284  -0.570 0.568514    
+## monthSeptember         0.2375376  2.0712676   0.115 0.908708    
+## trump:Trump_adminTRUE  0.2655647  0.0618437   4.294 1.84e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 18.74 on 2005 degrees of freedom
+## Multiple R-squared:  0.2659, Adjusted R-squared:  0.2571 
+## F-statistic: 30.26 on 24 and 2005 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre><code>## [1] &quot;~~~~~~~~~~~~~~~~Adjusted Report Data by total number of segmens in a month ~~~~~~~~~~&quot;</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = news_adjust ~ segment + trump + Trump_admin + Trump_admin * 
+##     trump + crime + welfare + ymd + weekday + month, data = table_5)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.13914 -0.03847 -0.00950  0.02353  0.36389 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)            1.493e+00  7.879e-02  18.950  &lt; 2e-16 ***
+## segment               -5.252e-04  1.022e-04  -5.137 3.06e-07 ***
+## trump                  2.117e-04  1.762e-04   1.201  0.22986    
+## Trump_adminTRUE        5.540e-02  5.867e-03   9.442  &lt; 2e-16 ***
+## crime                  4.875e-04  8.483e-04   0.575  0.56557    
+## welfare                2.763e-03  2.180e-03   1.267  0.20513    
+## ymd                   -8.278e-05  4.743e-06 -17.453  &lt; 2e-16 ***
+## weekdayMonday          2.781e-03  4.950e-03   0.562  0.57433    
+## weekdaySaturday       -8.377e-03  4.956e-03  -1.690  0.09109 .  
+## weekdaySunday         -9.047e-03  4.938e-03  -1.832  0.06708 .  
+## weekdayThursday        5.502e-03  4.936e-03   1.115  0.26508    
+## weekdayTuesday         2.609e-03  4.931e-03   0.529  0.59673    
+## weekdayWednesday       8.407e-03  4.927e-03   1.706  0.08813 .  
+## monthAugust           -3.664e-02  6.400e-03  -5.725 1.19e-08 ***
+## monthDecember         -1.994e-02  6.704e-03  -2.975  0.00296 ** 
+## monthFebruary         -3.001e-02  6.431e-03  -4.666 3.28e-06 ***
+## monthJanuary          -2.978e-02  6.355e-03  -4.687 2.96e-06 ***
+## monthJuly             -3.934e-02  6.371e-03  -6.175 7.98e-10 ***
+## monthJune             -2.578e-02  6.397e-03  -4.030 5.78e-05 ***
+## monthMarch             1.266e-02  6.347e-03   1.995  0.04622 *  
+## monthMay               1.601e-02  6.338e-03   2.526  0.01161 *  
+## monthNovember         -3.959e-02  6.707e-03  -5.902 4.20e-09 ***
+## monthOctober           1.726e-03  6.640e-03   0.260  0.79496    
+## monthSeptember         9.965e-03  6.569e-03   1.517  0.12945    
+## trump:Trump_adminTRUE  3.864e-04  1.961e-04   1.970  0.04896 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.05944 on 2005 degrees of freedom
+## Multiple R-squared:  0.3064, Adjusted R-squared:  0.2981 
+## F-statistic:  36.9 on 24 and 2005 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="report-4" class="section level1">
+<h1>Report:</h1>
+<blockquote>
+<p>After adjusted search of report by total numbers of news in a month,
+we observed that p value for interaction of Trump News and Trump Admin
+increased to 0.01. However, it shows different result that mentioned in
+the notes of Table 5 : ” The interaction between Trump News and Trump
+Admin, while significant,does not weaken the relationship between the
+crime/welfare news coverage and anti-immigrant searches.” After
+adjustment, the interaction between Trump News and Trump Admin that does
+weaken the relationship between the crime/welfare news coverage and
+anti-immigrant searches. (Comparing regression results for welfare and
+crime variable that represent crime and welfare news coverage)</p>
+</blockquote>
 </div>
 
 

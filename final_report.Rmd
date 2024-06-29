@@ -286,3 +286,38 @@ What happens if we adjusted for this bias. We can either omit that data from the
 
 ## Question 3:
 
+> Investigating further for Hypothesis 1:
+"H1: People will have more interest in reporting immigrants when they believe the government supports                     deportation." 
+Table 5 supported H1 by stating that 
+            "Regarding Trump’s campaign cues, the regressions did not show a significant positive effect of
+            Trump’s immigration coverage on anti-immigrant searches during the campaign. However, the cues about Trump’s             presidential immigration policy positively and significantly affected reporting searches. Both of these
+            findings provide further support for Hypothesis 1. "
+            
+> But we thought that not just because of government supports, there is an increase in interest in reporting immigrants, but also it is because there is more news activity during Trump presidential. Therefore we thought it is worth to explore further by adjusting report search by the total number of news streamed. (#time interval we chose "monthly adjustment")
+
+# Replication of Table 5 using Original Topic Model and Original Dataset
+```{r Importing Trump segments and monthly adjustment, message=FALSE}
+#Importing Trump segments and monthly adjustment
+trump_segs <- tot %>% 
+  select(date, trump) %>%
+  mutate( ymd = ymd(format(ymd(date), "%Y-%m-%d"))) %>%
+  group_by(ymd) %>% 
+  summarize( trump = sum(trump), count = n()) %>% mutate(ym = format(ymd, "%Y-%m")) %>% group_by(ym) %>%  mutate( max = cumsum(count), max = max(max))
+table_5 <- inner_join(table_4, trump_segs) %>% mutate(news_adjust = search_adj / max)
+
+```
+```{r, echo=FALSE}
+regression_table5 <- lm(search_adj ~ segment + trump + Trump_admin + Trump_admin * trump + crime +  welfare + ymd + weekday + month, table_5)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Replicating Table 5~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+summary(regression_table5)
+
+
+regression_table5_adj <- lm(news_adjust ~ segment + trump + Trump_admin + Trump_admin * trump + crime +  welfare + ymd + weekday + month, table_5)
+print("~~~~~~~~~~~~~~~~Adjusted Report Data by total number of segmens in a month ~~~~~~~~~~")
+summary(regression_table5_adj)
+```
+# Report:
+> After adjusted search of report by total numbers of news in a month, we observed that p value for interaction of Trump News and Trump Admin increased to 0.01.
+However, it shows different result that mentioned in the notes of Table 5 : 
+            " The interaction between Trump News and Trump Admin, while significant,does not weaken the relationship between the crime/welfare news coverage and anti-immigrant searches."
+After adjustment, the interaction between Trump News and Trump Admin that does weaken the relationship between the crime/welfare news coverage and anti-immigrant searches. (Comparing regression results for welfare and crime variable that represent crime and welfare news coverage)
