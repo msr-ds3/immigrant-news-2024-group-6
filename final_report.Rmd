@@ -1,6 +1,6 @@
 ---
 title: "Replication of \"Anti-Immigrant Rhetoric and ICE Reporting Interest: Evidence from a Large-Scale Study of Web Search Data\""
-author: Suvedei (Baruch College) and Eric (Hunter College)
+author: Suvedei Soyol-Erdene (Baruch College) and Eric Guan (Hunter College)
 date: '`r Sys.time()`'
 output:
   html_document:
@@ -63,7 +63,7 @@ daily_report <- read.csv(("data/from_replication_files/gt_report_daily.csv")) %>
   select(ymd, search, search_adj)
 ```
 
-# Replication Figure 4 from the Research Paper using 2024 Google Trends Data
+# Replication of Figure 4 from the Research Paper using 2024 Google Trends Data
 ```{r Replicating Figure 4, warning=FALSE, message=FALSE}
 #plotting reporting
 google_trends_2024  %>%  
@@ -91,7 +91,7 @@ google_trends_2024  %>%
 ```
 
 
-# Replication Figure 4 from the Research Paper using the Original Dataset
+# Replication of Figure 4 from the Research Paper using the Original Dataset
 ```{r Original Data Set, warning=FALSE, message=FALSE}
 #plotting reporting
 trends_original  %>%  
@@ -118,13 +118,13 @@ trends_original  %>%
 
 ```
 
-# Report: 
+# Figure 4 Report: 
 > When replicating Figure 4 using the orignal dataset, we got near identical results. However, when replicating with the 2024 Google Trends data, we noticed a lot of zero values that weren't present in the original dataset for the paper. This resulted in slightly skewed regression lines for the Bush administration. We suspect that maybe Google Trends dropped the data for those specific days.
 
 
 
-# Replication Table 3 from the Research Paper using 2024 Google Trends Data
-```{r Replicate Table 3 using 2024 Google Trends data, echo=FALSE}
+# Replication of Table 3 from the Research Paper using 2024 Google Trends Data
+```{r Replicate Table 3 using 2024 Google Trends data}
 
 #Crime
 google_trends_2024$president <- relevel(factor(google_trends_2024$president), ref = "Obama")
@@ -145,8 +145,8 @@ summary(welfare_regression)
 ```
 
 
-# Replication Table 3 from the Research Paper using the Original Dataset
-```{r Replicate Table 3 using Original data, echo=FALSE}
+# Replication of Table 3 from the Research Paper using the Original Dataset
+```{r Replicate Table 3 using Original data}
 
 #Crime
 trends_original$president <- relevel(factor(trends_original$president), ref = "Obama")
@@ -165,7 +165,7 @@ print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Welfare_Regression~~~~~~~~~~~~~~~~~~~~~~~~~
 summary(welfare_regression)
 ```
 
-# Report: 
+# Table 3 Report: 
 > When we replicated Table 3 using the original data set, we got near identical results. However, when we tried to replicate Table 3 using the 2024 Google Trends data, only the "report trends" table had close results to the paper. The other two (welfare and crime) had drastically different coefficients, although the p-values are similar. This is most likely due to the effects of the extra zero values.
 
 
@@ -263,23 +263,16 @@ regression_adj <- lm(search_adj ~ ymd + crime + segment + welfare + Trump_admin 
 summary(regression_adj)
 ```
 
-# Report: 
+# Figure 2-3 Report: 
 > We replicated a regression analysis on both for predicting the standard Google Trends "Reporting" data and the adjusted Google Trends "Reporting" data (adj = monthly search / mean weekly search). We found that by using the adjusted data, we got similar outcomes, particularly for the "Trump_admin" feature (18.634301), but the intercept seems to be different. When running on the standard data, the intercept is closer to the reported table, but the "Trump_admin" feature is drastically lower (6.251847). However, the p-values replicated are similar, so there does seem to be a correlation between the Trump administration and the search data.
 
 
 # Extension: 
 ## Question 1: 
-> What if we got data on the number of immigration-policies passed.
-This would be a better metric for "government support for deportation" than Trump's inauguration. We classify the policies based on immigration (positive/negative).
-How about in addition to identifying good and bad immigration policies, we get the exact day they were passed. We can do something similar to the "pre-Trump" vs "post-Trump" distinction the paper did. I think this would better represent "government stance" in relation to reporting immigrants.
-In addition to policies that were passed, we can look at attempts to pass immigration related policies. It would be interesting to see how news reporting reacts and how search results are influenced (reporting/welfare/crime).
-June 2018 --> migrant family separation (courtesy of Matt and Fabio). Government passed policy to support immigration. See how that effected reporting data/ support data.
+> The paper uses "Trump's Presidential Term" as an indicator for "government support for deportation." The analysis from this decision supports Hypothesis 1 of this paper: "People will have more interest in reporting immigrants when they believe the government supports deportation." However, perhaps a better metric to use would be the passage of specific immigration based policies. By identifying positive and negative key immigration policies passed and the exact day of passage, we can explore the reaction of the "reporting", "welfare", and "crime" search data. 
+
 
 ## Question 2:
-> It is possible that prior to Trump's inauguration, people were already thinking about the anti-immigration policies (since Trump was very vocal in his campaign). Once Trump became president, maybe people were biased / primed into searching about anti-immigration sentiments (even if they weren't aiming to actually report it - did it out of curiosity). 
-What happens if we adjusted for this bias. We can either omit that data from the regression or find a better metric to represent "intentional reporting data." This may change the regression line and get rid of that spike.
-
-## Question 3:
 
 > Investigating further for Hypothesis 1:
 "H1: People will have more interest in reporting immigrants when they believe the government supports                     deportation." 
@@ -290,7 +283,7 @@ Table 5 supported H1 by stating that
             
 > But we thought that not just because of government supports, there is an increase in interest in reporting immigrants, but also it is because there is more news activity during Trump presidential. Therefore we thought it is worth to explore further by adjusting report search by the total number of news streamed. (#time interval we chose "monthly adjustment")
 
-# Replication of Table 5 using Original Topic Model and Original Dataset
+### Replication of Table 5 using Original Topic Model and Original Dataset
 ```{r Importing Trump segments and monthly adjustment, message=FALSE}
 #Importing Trump segments and monthly adjustment
 trump_segs <- document_topics %>% 
@@ -311,7 +304,7 @@ regression_table5_adj <- lm(news_adjust ~ segment + trump + Trump_admin + Trump_
 print("~~~~~~~~~~~~~~~~Adjusted Report Data by total number of segmens in a month ~~~~~~~~~~")
 summary(regression_table5_adj)
 ```
-# Report:
+### Report:
 > After adjusted search of report by total numbers of news in a month, we observed that p value for interaction of Trump News and Trump Admin increased to 0.01.
 However, it shows different result that mentioned in the notes of Table 5 : 
             " The interaction between Trump News and Trump Admin, while significant,does not weaken the relationship between the crime/welfare news coverage and anti-immigrant searches."
