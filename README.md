@@ -7,7 +7,7 @@ Replicated figures 2-4, and tables 3-4 using both 2024 Google Trends data and th
 ## Replication
 1. Install `tidyverse`, `dbplyr`, and `lubridate` R libraries
 2. Run the code from the `final_report.Rmd` R Markdown file
-3. Otherwise, use [this link](https://htmlpreview.github.io/?https://github.com/msr-ds3/immigrant-news-2024-group-6/blob/main/final_report.html) to view the results of the replication without running the code
+3. Alternatively, use [this link](https://htmlpreview.github.io/?https://github.com/msr-ds3/immigrant-news-2024-group-6/blob/main/final_report.html) to view the results of the replication without running the code
 
 ## Data from the paper
 
@@ -19,3 +19,7 @@ The data to entirely reproduce the results paper is available in this repository
 - `google_trends_welfare.csv` contains the original google search data for welfare used in the paper
 - `gt_report_daily.csv` contains daily google search data for reporting used for Table 4
 - `gtopic_model_lite.Rdata` contains the topic model used for figures 3-4 and table 4
+
+## Extensions
+
+Explores critiques and potential additions regarding the data analysis of this paper. 
