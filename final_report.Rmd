@@ -216,7 +216,7 @@ document_topics %>%
   ggtitle("Figure 3")
 ```
 
-# Report: 
+# Figure 2-3 Report: 
 > Using the topic model data used by the research paper, we were able to make near identical graphs. 
 
 
@@ -263,7 +263,7 @@ regression_adj <- lm(search_adj ~ ymd + crime + segment + welfare + Trump_admin 
 summary(regression_adj)
 ```
 
-# Figure 2-3 Report: 
+# Table 4 Report:
 > We replicated a regression analysis on both for predicting the standard Google Trends "Reporting" data and the adjusted Google Trends "Reporting" data (adj = monthly search / mean weekly search). We found that by using the adjusted data, we got similar outcomes, particularly for the "Trump_admin" feature (18.634301), but the intercept seems to be different. When running on the standard data, the intercept is closer to the reported table, but the "Trump_admin" feature is drastically lower (6.251847). However, the p-values replicated are similar, so there does seem to be a correlation between the Trump administration and the search data.
 
 
