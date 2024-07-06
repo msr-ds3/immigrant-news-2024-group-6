@@ -11,7 +11,7 @@ Replicated figures 2-4, and tables 3-4 using both 2024 Google Trends data and th
 
 ## Data from the paper
 
-The data to entirely reproduce the results paper is available in this repository. For convenience for the user, tidy data for data scientists and faculty is available in the `data` directory. For instance, for the data scientists:
+The data to entirely reproduce the results paper is available in this repository. For convenience for the user, tidy data is available in the `data` directory:
 
 - `google_trend_search.csv` contains google search data for reporting, crime, and welfare topics from 2024
 - `google_trends_crime.csv` contains the original google search data for crime used in the paper
