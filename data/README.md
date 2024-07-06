@@ -7,7 +7,7 @@ Replicated figures 2-4, and tables 3-4 using both 2024 Google Trends data and th
 ## Replication
 1. Install `tidyverse`, `dbplyr`, and `lubridate` R libraries
 2. Run the code from the `final_report.Rmd` R Markdown file
-3. Alternatively, use [this link](https://htmlpreview.github.io/?https://github.com/msr-ds3/immigrant-news-2024-group-6/blob/main/final_report.html) to view the results of the replication without running the code
+3. Alternatively, use [this link](https://rawcdn.githack.com/msr-ds3/immigrant-news-2024-group-6/147cbe8378ce00f6d67f2cb7a650cd8c76450d86/final_report.html) to view the results of the replication without running the code
 
 ## Data from the paper
 
